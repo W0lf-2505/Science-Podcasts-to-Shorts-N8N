@@ -1,0 +1,1649 @@
+{
+  "name": "Science Podcasts to Shorts",
+  "nodes": [
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "id": "c613277c-84b2-4e0a-ad77-29178e4dbeef",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        6080,
+        1184
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "EX2QdQgZeRs7SQVQ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output",
+        "options": {}
+      },
+      "id": "f07fbfa9-25b2-44ce-aa89-3e313ad9bca3",
+      "name": "Split Out1",
+      "type": "n8n-nodes-base.splitOut",
+      "position": [
+        6416,
+        960
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.assemblyai.com/v2/transcript",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"audio_url\": \"{{ $json.upload_url }}\"\n}",
+        "options": {}
+      },
+      "id": "e2a8243a-2db2-4578-9e90-67d1cc5bde33",
+      "name": "Submit Job",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        4720,
+        960
+      ],
+      "typeVersion": 4.2,
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GYEBxadaQCa2AGZT",
+          "name": "AssemblyAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.assemblyai.com/v2/transcript/{{ $node[\"Submit Job\"].json[\"id\"] }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "2a4ecb88-6b3c-4565-9f92-e6c5febde2fa",
+      "name": "Check Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        5168,
+        960
+      ],
+      "typeVersion": 4.2,
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GYEBxadaQCa2AGZT",
+          "name": "AssemblyAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "0e8296de-3d44-47ee-ab04-f5d9e4e00daa",
+              "operator": {
+                "name": "filter.operator.equals",
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "completed"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ceebfea6-6068-46e4-a845-cf0fe209dd0a",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        5392,
+        960
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e5b4b58c-20d7-4c45-898d-4e6518f2fba6",
+              "name": "transcription_text",
+              "type": "string",
+              "value": "={{ $json.text }}"
+            },
+            {
+              "id": "3e064366-ad18-42d5-bdd9-9420e95675f6",
+              "name": "word_details",
+              "type": "array",
+              "value": "={{ $json.words }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9797aeb0-470d-45d6-949b-7dc988c3e158",
+      "name": "Extract Results",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        5616,
+        960
+      ],
+      "typeVersion": 3.4,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash-001",
+        "options": {}
+      },
+      "id": "a86a8f9f-45a9-424f-945f-49c6926114c2",
+      "name": "Google Gemini Chat Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        6880,
+        1184
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "EX2QdQgZeRs7SQVQ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"title\": \"Who is the Most POWERFUL Man GLOBALLY? | PBD Podcast #pbdpodcast #power #exposed\",\n  \"description\": \"From black holes that can stop time to planets made entirely of diamonds — space is stranger than science fiction. In just 60 seconds, discover mind-blowing astro facts that will change the way you see the universe!\"\n}"
+      },
+      "id": "e146d265-54e9-4335-8477-f7e2915e8071",
+      "name": "Structured Output Parser1",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        7008,
+        1184
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "formTitle": "SciTech Shorts Generator",
+        "formDescription": "Transform any science, space, or technology link into an exciting, bite-sized short video! Share discoveries, experiments, and tech insights in a fun, engaging way — perfect for quick learning and viral content.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "YouTube Video URL",
+              "placeholder": "https://www.youtube.com/watch?v=uTChrirK-hw"
+            },
+            {
+              "fieldLabel": "Copyright Free Background Video",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "https://www.youtube.com/watch?v=z121mUPexGc"
+                  },
+                  {
+                    "option": "https://www.youtube.com/watch?v=n_gkZ6df1gY"
+                  },
+                  {
+                    "option": "https://www.youtube.com/watch?v=ghKKAdbXmJU"
+                  },
+                  {
+                    "option": "https://www.youtube.com/watch?v=H9YxXsxhNek"
+                  },
+                  {
+                    "option": "https://www.youtube.com/watch?v=mTWtbXevOq8"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false,
+          "path": "beyondthehorizon",
+          "ignoreBots": true,
+          "customCss": ":root {\n    /* Fonts */\n    --font-family: 'Roboto', sans-serif;\n    --font-weight-normal: 400;\n    --font-weight-bold: 600;\n    --font-size-body: 13px;\n    --font-size-label: 14px;\n    --font-size-input: 14px;\n    --font-size-header: 22px;\n    --font-size-paragraph: 14px;\n    --font-size-link: 12px;\n    --font-size-error: 12px;\n    --font-size-html-h1: 30px;\n    --font-size-html-h2: 22px;\n    --font-size-html-h3: 18px;\n    --font-size-html-h4: 16px;\n    --font-size-html-h5: 14px;\n    --font-size-html-h6: 12px;\n    --font-size-subheader: 16px;\n\n    /* Colors */\n    --color-background: #f0f4f8; /* Soft techy blue */\n    --color-card-bg: #ffffff;\n    --color-card-border: #cbd6e2;\n    --color-card-shadow: rgba(50, 100, 200, 0.08);\n    --color-header: #1a1f36;\n    --color-header-subtext: #5a5f72;\n    --color-label: #3a3f55;\n    --color-input-text: #1a1f36;\n    --color-input-border: #cbd6e2;\n    --color-focus-border: #3f51b5; /* Sci-fi tech glow blue */\n    --color-submit-btn-bg: #3f51b5;\n    --color-submit-btn-text: #ffffff;\n    --color-clear-button-bg: #f44336;\n    --color-error: #e53935;\n    --color-required: #f44336;\n    --color-link: #1a73e8;\n    --color-html-text: #333333;\n    --color-html-link: #3f51b5;\n    --color-test-notice-text: #ff9800;\n    --color-test-notice-bg: #fff8e1;\n    --color-test-notice-border: #ffd54f;\n\n    /* Border Radius */\n    --border-radius-card: 10px;\n    --border-radius-input: 6px;\n    --border-radius-clear-btn: 50%;\n    --card-border-radius: 10px;\n\n    /* Spacing */\n    --padding-container-top: 30px;\n    --padding-card: 24px;\n    --padding-test-notice-vertical: 12px;\n    --padding-test-notice-horizontal: 24px;\n    --margin-bottom-card: 18px;\n    --padding-form-input: 14px;\n    --card-padding: 24px;\n    --card-margin-bottom: 18px;\n\n    /* Dimensions */\n    --container-width: 480px;\n    --submit-btn-height: 50px;\n    --checkbox-size: 20px;\n\n    /* Others */\n    --box-shadow-card: 0px 6px 20px 0px var(--color-card-shadow);\n    --opacity-placeholder: 0.6;\n}\n"
+        }
+      },
+      "id": "80238aea-6c94-4dc2-b5ca-3f58aad008e3",
+      "name": "Send the YouTube Video Links",
+      "type": "n8n-nodes-base.formTrigger",
+      "position": [
+        768,
+        400
+      ],
+      "webhookId": "4304503e-1200-4d7f-b062-7629b5ca0207",
+      "typeVersion": 2.2,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.assemblyai.com/v2/upload",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "id": "b592b99b-7fda-400a-871c-d88a719aab04",
+      "name": "Transcribe Podcast Audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        4496,
+        960
+      ],
+      "typeVersion": 4.2,
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GYEBxadaQCa2AGZT",
+          "name": "AssemblyAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "minutes"
+      },
+      "id": "afbd7dd9-290a-4923-8af6-bc4b838a3003",
+      "name": "Wait 1",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        4944,
+        960
+      ],
+      "webhookId": "ae60902e-1252-4bf5-a86c-3e77165ab8cd",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "jsCode": "// Access the transcription data from the previous node\nconst transcriptData = $input.first().json.word_details; // Adjust this based on your node's output structure\n\n// Check if the data exists and is an array\nif (!transcriptData || !Array.isArray(transcriptData)) {\n  throw new Error(\"Transcription data is not an array or is undefined. Check the previous node's output.\");\n}\n\n// Map the transcript data to match your previous format\nconst formattedTranscript = transcriptData.map((word, index) => {\n  return {\n    text: word.text,   // Adjust 'text' to match your data's property name (e.g., 'word' or 'text')\n    index: index,      // Position in the array\n    start: Math.floor(word.start/1000), // Start time (adjust units if needed, e.g., / 1000 for seconds)\n    end: Math.ceil(word.end/1000)      // End time (adjust units if needed)\n  };\n});\n\n// Convert the formatted transcript to a JSON string\nconst transcriptJson = JSON.stringify(formattedTranscript);\n\n// Return the result in n8n’s expected format\nreturn [{ json: { transcriptJson: transcriptJson } }];"
+      },
+      "id": "6d2bd147-2027-41cf-b41d-e8a3b14fb11b",
+      "name": "Structure Transcription",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        5840,
+        960
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are given a transcript array where each entry is an object with the following keys:\n\ntext: a string containing the transcript text.\n\nindex: a number.\n\nstart: the starting second.\n\nend: the ending second.\n\nObjective:\nExtract, merge and Identify segments that contain interesting facts, engaging conversations, notable insights, moments of emotional impact, or key takeaways from the transcript.\nFor each highlight, break it into short subtitle segments of 2–3 words and 1–2 seconds duration, and highlight important words in color using HTML tags.\n\nInstructions:\n\nAnalyze the transcript and extract coherent highlight segments starting with a hook.\n\nMerge adjacent entries if they form a coherent highlight.\n\nEnsure the total duration of all highlight segments is no more than 600 seconds.\n\nEnsure the duration of each highlight is at least 50 seconds and no more than 150 seconds (150 > end_second - start_second > 50).\n\nEnsure that highlights do not overlap in time.\n\nSkip the starting few seconds if they are just a precap.\n\nFor each highlight:\n\nFind all words in the original transcript that fall within the highlight’s start_second and end_second.\n\nGroup them into subtitle segments:\n\nEach segment: 2–4 words\n\nDuration: 1–2 seconds\n\nMark “good” or impactful words by wrapping them in <font color=\"\\#FF4EC9\\\">word</font>.\nUse different good colors not just #FF4EC9 but so it looks good in a video\n\nFor each subtitle segment, set:\n\n\"text\": the subtitle string with HTML color tags for good words\n\n\"start_second\": the start time of the first word in the segment\n\n\"end_second\": the end time of the last word in the segment\n\nthe start_second and end_second should be continues, so if first end_second = 3 the next start_second will be 3, so its a continues you can use float values to make it better, if start and end are both same you can use 0.5 second please use float values to make it continues\n\nFinal Output Format:\nOutput only a plain JSON array of highlight objects.\nEach highlight object must have:\n\n\"transcript\": an array of subtitle segment objects (each with text, start_second, end_second)\n\n\"start_second\": number (highlight start)\n\n\"end_second\": number (highlight end)\n\nExample Output:\n[\n  {\n    \"transcript\": [\n      {\n        \"text\": \"That is <font color=\\\"#FF4EC9\\\">wild</span>\",\n        \"start_second\": 2,\n        \"end_second\": 3.2\n      },\n      {\n        \"text\": \"Welcome to\",\n        \"start_second\": 3.3,\n        \"end_second\": 4.7\n      }\n    ],\n    \"start_second\": 10,\n    \"end_second\": 13\n  },\n  {\n    \"transcript\": [\n      {\n        \"text\": \"This is <font color=\\\"#FF4EC9\\\">amazing</span>\",\n        \"start_second\": 0,\n        \"end_second\": 1.5\n      },\n      {\n        \"text\": \"<font color=\\\"#FF4EC9\\\">Next</font> level logic\",\n        \"start_second\": 1.6,\n        \"end_second\": 3.0\n      }\n    ],\n    \"start_second\": 16,\n    \"end_second\": 19\n  }\n]\n\n\nRemember: Your final response must be exactly the JSON array as specified—nothing else. No markdown fences, no extra keys, no additional text, only the JSON array. \n\nThe output must be valid JSON.",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "type": "HumanMessagePromptTemplate",
+              "message": "={{ $node[\"Structure Transcription\"].json[\"transcriptJson\"] }}"
+            }
+          ]
+        }
+      },
+      "id": "2777334e-d860-43d3-8385-6f91a437cb8b",
+      "name": "Podcast Best Moments Extraction",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        6064,
+        960
+      ],
+      "retryOnFail": true,
+      "typeVersion": 1.5,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "a8a57cb7-07c8-44a0-afd2-836bea05170f",
+      "name": "Loop Over Clips",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [
+        6656,
+        976
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "[\n  {\n    \"transcript\": [\n      {\n        \"text\": \"That is <font color\\\":#FF4EC9\\\">wild</span>\",\n        \"start_second\": 2,\n        \"end_second\": 3.2\n      },\n      {\n        \"text\": \"Welcome to\",\n        \"start_second\": 3.3,\n        \"end_second\": 4.7\n      }\n    ],\n    \"start_second\": 10,\n    \"end_second\": 13\n  },\n  {\n    \"transcript\": [\n      {\n        \"text\": \"This is <font color=\\\"#FF4EC9\\\">amazing</span>\",\n        \"start_second\": 0,\n        \"end_second\": 1.5\n      },\n      {\n        \"text\": \"<font color=\\\"#FF4EC9\\\">Next</font> level logic\",\n        \"start_second\": 1.6,\n        \"end_second\": 3.0\n      }\n    ],\n    \"start_second\": 16,\n    \"end_second\": 19\n  }\n]"
+      },
+      "id": "e3473bd8-d915-4ebb-92b6-c5ea0cbf716e",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        6208,
+        1184
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "url": "=https://youtube-mp3-audio-video-downloader.p.rapidapi.com/download-mp3/{{ $json.link }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "quality",
+              "value": "low"
+            },
+            {
+              "name": "format",
+              "value": "m4a"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-rapidapi-host",
+              "value": "youtube-mp3-audio-video-downloader.p.rapidapi.com"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "67e3707c-b810-48db-b772-b81eaf3133df",
+      "name": "Download Audio Stage 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        4272,
+        960
+      ],
+      "typeVersion": 4.2,
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "pNMaXVDUu6iW3Kjs",
+          "name": "Rapid api"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nlet link = $('AI Agent').first().json.output[0].url.split(\"v=\")[1]\nreturn {link};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4048,
+        960
+      ],
+      "id": "32da0b4f-720c-4b94-85db-d05d7c701e86",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "url": "https://youtube-info-download-api.p.rapidapi.com/ajax/download.php",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "format",
+              "value": "480"
+            },
+            {
+              "name": "add_info",
+              "value": "=0"
+            },
+            {
+              "name": "=url",
+              "value": "={{ $('AI Agent').item.json.output[0].url }}"
+            },
+            {
+              "name": "audio_quality",
+              "value": "128"
+            },
+            {
+              "name": "allow_extended_duration",
+              "value": "false"
+            },
+            {
+              "name": "no_merge",
+              "value": "false"
+            },
+            {
+              "name": "audio_language",
+              "value": "en"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-rapidapi-host",
+              "value": "youtube-info-download-api.p.rapidapi.com"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2704,
+        864
+      ],
+      "id": "cdc30d16-3580-4566-abb0-529ea4dcc5c5",
+      "name": "HTTP Request",
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "pNMaXVDUu6iW3Kjs",
+          "name": "Rapid api"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $('HTTP Request').item.json.progress_url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2928,
+        864
+      ],
+      "id": "b3158548-52b3-49d8-a6ab-744d7658bf4b",
+      "name": "HTTP Request1",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7113b403-7446-419d-bb51-91f11ebff084",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "Finished",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3152,
+        800
+      ],
+      "id": "a8946ebc-5aa3-4399-81dd-1ea588eced47",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3600,
+        960
+      ],
+      "id": "242bc15f-777e-482c-bfb3-c83036c5eb1b",
+      "name": "Wait",
+      "webhookId": "9a88f889-76b0-482d-b611-b6a66bf986e3"
+    },
+    {
+      "parameters": {
+        "url": "https://youtube-info-download-api.p.rapidapi.com/ajax/download.php",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "format",
+              "value": "480"
+            },
+            {
+              "name": "add_info",
+              "value": "0"
+            },
+            {
+              "name": "url",
+              "value": "={{ $('Code2').item.json.randomLink }}"
+            },
+            {
+              "name": "audio_quality",
+              "value": "128"
+            },
+            {
+              "name": "allow_extended_duration",
+              "value": "false"
+            },
+            {
+              "name": "no_merge",
+              "value": "false"
+            },
+            {
+              "name": "audio_language",
+              "value": "en"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-rapidapi-host",
+              "value": "youtube-info-download-api.p.rapidapi.com"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3376,
+        704
+      ],
+      "id": "7154e59c-af69-445d-ba85-6d59b6910ee3",
+      "name": "HTTP Request2",
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "pNMaXVDUu6iW3Kjs",
+          "name": "Rapid api"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $('HTTP Request2').item.json.progress_url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3600,
+        704
+      ],
+      "id": "8ac32788-484d-4735-aba2-56f1e56ea56f",
+      "name": "HTTP Request3",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7113b403-7446-419d-bb51-91f11ebff084",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "Finished",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3824,
+        624
+      ],
+      "id": "3ab12504-0e9e-4cad-a9ab-31a660a105af",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4048,
+        704
+      ],
+      "id": "b184216b-b4d5-4e9e-9a3a-0ede5ad12205",
+      "name": "Wait2",
+      "webhookId": "9a88f889-76b0-482d-b611-b6a66bf986e3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Inputs you provide in n8n\nconst youtubeLink = $('If2').first().json.download_url; // e.g., \"https://www.youtube.com/watch?v=abcd1234\"\nconst gameplayLink = $('If3').first().json.download_url; // e.g., MP4 link or file URL\n\n// const youtubeLink = \"https://joan48.oceansaver.in/pacific/?W059PMLknMgPFrSp3RB0AYW\"\n// const gameplayLink = \"https://patrick17.oceansaver.in/pacific/?f67T4SCEp5IrIHqzhqZPliJ\"\n\n\n\n// Optional: Clip settings\nconst youtubeClipStart = $('Loop Over Clips').first().json.start_second; // in seconds\nconst youtubeClipDuration = $('Loop Over Clips').first().json.end_second - youtubeClipStart; // in seconds\n\nlet clips = [];\n\n// lets add subtitle\n$('Loop Over Clips').first().json.transcript.forEach(seg => {\n  clips.push({\n    asset: {\n      type: \"html\",\n      \"width\": 1000,\n      \"height\": 400,\n      background: \"transparent\", // No background\n      html: \"<p data-html-type=\\\"text\\\">\"+ seg.text + \"</p>\",\n      \"css\": \"p { font-size: 70px; font-family: 'Anton SC'; text-align: center; text-scale: shrink; }\"\n    },\n    start: parseFloat((seg.start_second - youtubeClipStart).toFixed(2)),\n    length: parseFloat((seg.end_second - seg.start_second).toFixed(2))\n  });\n});\n\n\n// Build ShortStack JSON payload\nconst shortstackPayload = {\n  \"timeline\": {\n    \"background\": \"#000000\",\n    \"tracks\": [\n      // {\n      //   \"clips\": clips\n      // },\n      {\n        \"clips\": [\n          {\n            \"length\": \"auto\",\n            \"asset\": {\n              \"type\": \"video\",\n              \"src\": gameplayLink,\n              \"volume\": 0.1\n            },\n            \"start\": 0,\n            \"length\": youtubeClipDuration,\n            \"offset\": {\n              \"x\": -0.02,\n              \"y\": -0.235\n            },\n            \"scale\": 0.505,\n            \"position\": \"center\"\n          }\n        ]\n      },\n      {\n        \"clips\": [\n          {\n            \"length\": \"auto\",\n            \"asset\": {\n              \"type\": \"video\",\n              \"src\": youtubeLink,\n              \"trim\": youtubeClipStart\n            },\n            \"start\": 0,\n            \"length\": youtubeClipDuration,\n            \"offset\": {\n              \"x\": -0.02,\n              \"y\": 0.25\n            },\n            \"scale\": 0.465,\n            \"position\": \"center\"\n          }\n        ]\n      }\n    ]\n  },\n  \"output\": {\n    \"format\": \"mp4\",\n    \"fps\": 25,\n    \"size\": {\n      \"width\": 1080,\n      \"height\": 1920\n    }\n  },\n  \"callback\": \"https://magic.codesacure.com/webhook/bf61429a-999b-47fe-bc4d-be0ae42cc306\"\n}\n\n// Return for n8n\nreturn [\n    {\n        json: {\n            shotstack_payload: shortstackPayload\n        }\n    }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7216,
+        960
+      ],
+      "id": "fd86246a-909f-453c-98ff-46102107311f",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.shotstack.io/stage/render",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.shotstack_payload) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        7440,
+        960
+      ],
+      "id": "aa0e1cbf-aeaa-4850-b521-d2ea818193fb",
+      "name": "HTTP Request4",
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cL2Dvq7TMLs6MO3j",
+          "name": "ShotStack test"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "250a2162-85ec-80f6-bb60-d7e862823dd5",
+          "mode": "list",
+          "cachedResultName": "VideoInfo-magic",
+          "cachedResultUrl": "https://www.notion.so/250a216285ec80f6bb60d7e862823dd5"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "uuid|title",
+              "title": "={{ $('HTTP Request4').item.json.response.id }}"
+            },
+            {
+              "key": "video_title|rich_text",
+              "textContent": "={{ $('Generate Title and description').item.json.output.title }}"
+            },
+            {
+              "key": "description|rich_text",
+              "textContent": "={{ $('Generate Title and description').item.json.output.description }}"
+            },
+            {
+              "key": "tags|multi_select",
+              "multiSelectValue": "={{ $('AI Agent').item.json.output.last().tags }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        7664,
+        960
+      ],
+      "id": "544bf54c-0f1a-44e5-bdb9-d19149849628",
+      "name": "Create a database page",
+      "credentials": {
+        "notionApi": {
+          "id": "2iM9wOTMOQgIw6we",
+          "name": "Notion account codescaure"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Combine all the text, Analyze the following video transcript and generate a compelling TikTok title (under 60 characters, attention-grabbing) and captions (concise, engaging, highlights key moments/hooks) and a description with hashtags (that bring more such intrested people to video)\nFocus on clarity, emotional appeal, and curiosity. Avoid generic phrases. Title must align with the transcript's core message or most viral moment and make sure to add related trending hashtags in both title and description. Output JSON format only.\n\nExample Output:\n\n```json```\n{\n  \"title\": \"Who is the Most POWERFUL Man GLOBALLY? | PBD Podcast #pbdpodcast #power #exposed\",\n\"description: \"From black holes that can stop time to planets made entirely of diamonds — space is stranger than science fiction. 🚀💫 In just 60 seconds, discover mind-blowing astro facts that will change the way you see the universe!\"\n}\n```json```\n   ",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "type": "HumanMessagePromptTemplate",
+              "message": "={{ JSON.stringify($('Loop Over Clips').item.json.transcript) }}"
+            }
+          ]
+        }
+      },
+      "id": "c5e1708a-3f02-451c-913a-7f18ae954269",
+      "name": "Generate Title and description",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "position": [
+        6864,
+        960
+      ],
+      "typeVersion": 1.5
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        7888,
+        960
+      ],
+      "id": "6c54fa13-1d07-413f-88b4-0a082fb2d2f6",
+      "name": "Wait1",
+      "webhookId": "4191fdd8-b87b-4643-915d-fd0f2f1d0bbf"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "251a2162-85ec-8069-98d4-f56853052222",
+          "mode": "list",
+          "cachedResultName": "Used Videos",
+          "cachedResultUrl": "https://www.notion.so/251a216285ec806998d4f56853052222"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        992,
+        992
+      ],
+      "id": "587000ef-b911-480f-92d2-978c39771cf5",
+      "name": "Get many database pages",
+      "credentials": {
+        "notionApi": {
+          "id": "2iM9wOTMOQgIw6we",
+          "name": "Notion account codescaure"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "\n[\n  {\n    \"title\": \"string\",\n    \"url\": \"string\",\n    \"publish_date\": \"YYYY-MM-DD\",\n    \"tags\": [\"tag1\",\"tag2\"]\n  }\n]"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2048,
+        1088
+      ],
+      "id": "850d0e05-4d50-4df7-8589-b402592bea98",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "property_links",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1216,
+        864
+      ],
+      "id": "54c9928e-6286-426c-b715-4236ac389371",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "property_links"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        864
+      ],
+      "id": "1dfa34c2-e73d-4f64-807c-805a6d587066",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "251a2162-85ec-8069-98d4-f56853052222",
+          "mode": "list",
+          "cachedResultName": "Used Videos",
+          "cachedResultUrl": "https://www.notion.so/251a216285ec806998d4f56853052222"
+        },
+        "title": "=",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Links|title",
+              "title": "={{ $json.output[0].url }}"
+            },
+            {
+              "key": "Name|rich_text",
+              "textContent": "={{ $json.output[0].title }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        2256,
+        864
+      ],
+      "id": "892d7f9b-aa04-4bed-b860-ea1dedcdb1f5",
+      "name": "Create a database page1",
+      "credentials": {
+        "notionApi": {
+          "id": "2iM9wOTMOQgIw6we",
+          "name": "Notion account codescaure"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "function getRandomLink(links) {\n    if (!Array.isArray(links) || links.length === 0) {\n        return null; // No valid links\n    }\n    const randomIndex = Math.floor(Math.random() * links.length);\n    return links[randomIndex];\n}\n\nconst videoLinks = [\n    \"https://www.youtube.com/watch?v=z121mUPexGc\",\n    \"https://www.youtube.com/watch?v=n_gkZ6df1gY\",\n    \"https://www.youtube.com/watch?v=ghKKAdbXmJU\",\n    \"https://www.youtube.com/watch?v=H9YxXsxhNek\",\n    \"https://www.youtube.com/watch?v=mTWtbXevOq8\"\n];\n\nconst randomLink = getRandomLink(videoLinks);\nreturn {randomLink}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2480,
+        864
+      ],
+      "id": "710630c1-ab2a-4923-8566-c26e52cf9156",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "options": {
+          "maxTokens": 650
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        1088
+      ],
+      "id": "02aea79f-bde9-4f54-8713-11aad0fce45c",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "5TeJFi1pFMn3ektG",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.property_links }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=Your task is to find 1 YouTube video that match the following criteria:\nTodays date is {{ $today }}\n\nDate Range: Uploaded within the last 7 days.\nTopics/Niches: Science, space, science podcasts, technology breakthroughs, astronomy, astrophysics, AI research, quantum physics, climate science, cutting-edge engineering, future of humanity, innovations in energy, robotics, medical science, or deep tech. Try to get some popular channel that use a human or nice footage in video\nFormat: Must be at least 6 minutes long, have a clear spoken discussion or commentary (no pure music/stock footage).\nExclusions: Do not include any videos whose URLs or titles match the exclusion list I will provide.\nType: Only public videos, not YouTube Shorts.\nLinks must be in the exact format: https://www.youtube.com/watch?v=VIDEO_ID\nImportant: Verify the video is getting viral, has good base and length.\nThe topics are many you can select any out of them for query as putting everything might not get any results\n\nOutput Format \n\n[\n  {\n    \"title\": \"string\",\n    \"url\": \"string\",\n    \"publish_date\": \"YYYY-MM-DD\",\n    \"tags\": [\"tag1\",\"tag2\"]\n  }\n] "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1792,
+        864
+      ],
+      "id": "db2ec546-7512-4626-acae-2d4ab103d96c",
+      "name": "AI Agent",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "filters": {
+          "publishedAfter": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Published_After', ``, 'string') }}",
+          "q": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query', ``, 'string') }}",
+          "videoCategoryId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Video_Category_ID', ``, 'string') }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.youTubeTool",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        1088
+      ],
+      "id": "cff59131-aa58-434f-8d87-258b6348d19f",
+      "name": "Get many videos in YouTube",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "UFDoaegI7txz7Kfw",
+          "name": "YouTube account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 17
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        768,
+        992
+      ],
+      "id": "95c0a68c-bab3-4279-8d82-e615139004c8",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "get",
+        "videoId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Video_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.youTubeTool",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        1088
+      ],
+      "id": "da8af5d1-fc99-49ef-b33f-71cdd159c8e2",
+      "name": "Get a video in YouTube",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "UFDoaegI7txz7Kfw",
+          "name": "YouTube account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "23e5f5f0-5515-4ffe-9598-8458be80dd94",
+              "leftValue": "={{ $('HTTP Request1').item.json.text }}",
+              "rightValue": "No Files ",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3376,
+        896
+      ],
+      "id": "1eae0bf6-2c9e-4cd6-af3d-b1ea8f7ba184",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        1216
+      ],
+      "id": "88664af1-8391-4fce-80c2-168b19b2cacc",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "EX2QdQgZeRs7SQVQ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Send the YouTube Video Links": [
+      {
+        "json": {
+          "YouTube Video URL": "https://www.youtube.com/watch?v=D59xKWJEb2Q",
+          "Copyright Free Background Video": "https://www.youtube.com/watch?v=z121mUPexGc",
+          "submittedAt": "2025-08-16T06:00:48.462-04:00",
+          "formMode": "production"
+        }
+      }
+    ],
+    "Schedule Trigger": [
+      {
+        "json": {
+          "timestamp": "2025-08-20T17:00:44.102+05:30",
+          "Readable date": "August 20th 2025, 5:00:44 pm",
+          "Readable time": "5:00:44 pm",
+          "Day of week": "Wednesday",
+          "Year": "2025",
+          "Month": "August",
+          "Day of month": "20",
+          "Hour": "17",
+          "Minute": "00",
+          "Second": "44",
+          "Timezone": "Asia/Kolkata (UTC+05:30)"
+        }
+      }
+    ],
+    "AI Agent": [
+      {
+        "json": {
+          "output": [
+            {
+              "title": "What\u0019s the most important scientific discovery yet to be made? #science #technology #medicine",
+              "url": "https://www.youtube.com/watch?v=KJ5W8V5zDBE",
+              "publish_date": "2025-08-16",
+              "tags": [
+                "science",
+                "technology",
+                "medicine"
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "Create a database page1": [
+      {
+        "json": {
+          "id": "255a2162-85ec-810a-b677-ef3bcfeeead7",
+          "name": "https://www.youtube.com/watch?v=KJ5W8V5zDBE",
+          "url": "https://www.notion.so/https-www-youtube-com-watch-v-KJ5W8V5zDBE-255a216285ec810ab677ef3bcfeeead7",
+          "property_name": "Whats the most important scientific discovery yet to be made? #science #technology #medicine",
+          "property_links": "https://www.youtube.com/watch?v=KJ5W8V5zDBE"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Extract Results",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 1": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Clips",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submit Job": {
+      "main": [
+        [
+          {
+            "node": "Wait 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Status": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Results": {
+      "main": [
+        [
+          {
+            "node": "Structure Transcription",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Clips": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Generate Title and description",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Audio Stage 1": {
+      "main": [
+        [
+          {
+            "node": "Transcribe Podcast Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structure Transcription": {
+      "main": [
+        [
+          {
+            "node": "Podcast Best Moments Extraction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Podcast Best Moments Extraction",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Podcast Best Moments Extraction",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe Podcast Audio": {
+      "main": [
+        [
+          {
+            "node": "Submit Job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Title and description",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Generate Title and description",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send the YouTube Video Links": {
+      "main": [
+        []
+      ]
+    },
+    "Podcast Best Moments Extraction": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Download Audio Stage 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request4": {
+      "main": [
+        [
+          {
+            "node": "Create a database page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Title and description": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a database page": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Clips",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many database pages": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a database page1": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many videos in YouTube": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Create a database page1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get many database pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a video in YouTube": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Get many database pages",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "timezone": "Asia/Kolkata",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionOrder": "v0"
+  },
+  "versionId": "5e6d671a-5533-4015-8014-0043a35f8f3d",
+  "meta": {
+    "templateId": "4568",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b817877859545fad0bd4d15e66b5169479605abcc6cedde8053d3a5e568cfa5c"
+  },
+  "id": "oTumjt1MBSCjjEN6",
+  "tags": []
+}
